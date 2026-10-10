@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>给你</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#12061f;color:#fff;
+font-family:-apple-system,"PingFang SC",sans-serif;user-select:none;-webkit-user-select:none}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+background:radial-gradient(circle at 50% 20%,rgba(255,60,130,.25),transparent 60%),
+radial-gradient(circle at 20% 80%,rgba(150,70,255,.2),transparent 60%)}
+
+.s{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;
+align-items:center;justify-content:center;padding:32px;text-align:center;
+opacity:0;pointer-events:none;transition:opacity .9s ease}
+.s.in{opacity:1;pointer-events:auto}
+
+/* 对话区 */
+.dlg{width:100%;max-width:520px;display:flex;flex-direction:column;
+gap:30px;align-items:center;position:absolute}
+.sent{display:flex;flex-direction:column;gap:6px;align-items:center;width:100%}
+.sent .t{font-size:21px;line-height:1.65;font-weight:300;
+color:rgba(255,255,255,.95);text-shadow:0 0 22px rgba(255,110,170,.45);
+opacity:0;transform:translateY(16px);
+transition:opacity .9s ease,transform .9s ease;
+word-break:break-all}
+.sent .t.on{opacity:1;transform:none}
+
+/* 开场 */
+.h{font-size:80px;line-height:1;filter:drop-shadow(0 0 24px rgba(255,60,120,.8));
+animation:b 1.2s ease-in-out infinite}
+@keyframes b{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.tap{margin-top:34px;font-size:14px;letter-spacing:.35em;text-indent:.35em;
+color:rgba(255,255,255,.55);animation:f 2s infinite}
+@keyframes f{50%{opacity:.3}}
+
+/* 表白 */
+.q1{font-size:46px;font-weight:700;letter-spacing:.05em;
+background:linear-gradient(135deg,#ffe0ee,#ff5c9d 45%,#c86bff);
+-webkit-background-clip:text;background-clip:text;color:transparent;
+filter:drop-shadow(0 0 28px rgba(255,80,150,.6))}
+.q2{margin-top:22px;font-size:18px;font-weight:300;
+color:rgba(255,255,255,.82);letter-spacing:.05em}
+.btns{margin-top:56px;display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:nowrap}
+button{font-family:inherit;border:none;border-radius:999px;
+padding:15px 32px;font-size:17px;cursor:pointer;-webkit-appearance:none;
+transition:transform .4s cubic-bezier(.2,1.3,.5,1),opacity .4s,box-shadow .4s}
+#yes{background:linear-gradient(135deg,#ff5f9e,#ff2d6f);color:#fff;
+font-weight:600;letter-spacing:.08em;animation:g 2s ease-in-out infinite}
+@keyframes g{0%,100%{box-shadow:0 10px 30px rgba(255,45,111,.4),0 0 0 0 rgba(255,90,150,.55)}
+50%{box-shadow:0 10px 40px rgba(255,45,111,.75),0 0 0 16px rgba(255,90,150,0)}}
+#no{background:rgba(255,255,255,.07);color:rgba(255,255,255,.62);
+border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+/* 结尾 */
+.fh{font-size:56px;line-height:1;filter:drop-shadow(0 0 26px rgba(255,60,120,.85));
+animation:b 1.3s ease-in-out infinite}
+.f1{margin-top:26px;font-size:34px;font-weight:700;letter-spacing:.06em;
+background:linear-gradient(135deg,#ffe0ee,#ff5c9d 50%,#c86bff);
+-webkit-background-clip:text;background-clip:text;color:transparent;
+filter:drop-shadow(0 0 24px rgba(255,80,150,.55))}
+.f2{margin-top:20px;font-size:17px;line-height:1.9;font-weight:300;
+color:rgba(255,255,255,.85)}
+.f3{margin-top:34px;font-size:13px;letter-spacing:.1em;color:rgba(255,255,255,.4)}
+</style>
+</head>
+<body>
+
+<!-- ① 开场 -->
+<div class="s in" id="s1">
+  <div class="h">❤</div>
+  <p class="tap">轻 触 屏 幕</p>
+</div>
+
+<!-- ② 对话区 -->
+<div class="s" id="s2"></div>
+
+<!-- ③ 表白 -->
+<div class="s" id="s3">
+  <h1 class="q1">我喜欢你</h1>
+  <p class="q2">可以做我女朋友吗？</p>
+  <div class="btns">
+    <button id="yes">愿意 💕</button>
+    <button id="no">再想想</button>
+  </div>
+</div>
+
+<!-- ④ 结尾 -->
+<div class="s" id="s4">
+  <div class="fh">❤</div>
+  <div class="f1">谢谢你</div>
+  <p class="f2" id="ft"></p>
+  <p class="f3" id="fd"></p>
+</div>
+
+<audio id="m" loop src="piano.mp3"></audio>
+
+<script>
+/* ========== 可修改文案 ========== */
+const SCENES = [
+  /* 第一段 */
+  ['嘿！是我', '我有些话想对你说'],
+  /* 第二段 */
+  ['到现在为止，我们已经认识了挺长时间了',
+   '每次在教学楼不经意的瞄到你我都有点紧张',
+   '心跳也会漏跳一拍',
+   '我从没有面对其他人这么心慌过'],
+  /* 第三段 */
+  ['我也挺恨我不敢直接接近你',
+   '怕你反感，怕你不再理我'],
+  /* 第四段 */
+  ['所以，借这次机会，我想对你说']
+];
+
+/* 每行最多几个字 */
+const MAX_PER_LINE = 10;
+
+/* 浮现节奏 */
+const GAP_AFTER_SENT = 900;   // 一句浮现后等多久出下一句
+const GAP_AFTER_SCENE = 1200; // 一段结束后等多久切下一段
+
+const FINAL_TEXT = '从今天起，你就是我的女朋友啦<br>这句话，我等了好久好久。';
+const NO_TEXTS = ['再想想','真的不再想想？','确定吗…','我会难过的','再考虑一下嘛','没得选啦 😝'];
+/* ================================= */
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+let started = false, noCount = 0;
+
+/* 背景音乐 */
+function playMusic(){
+  const a = $('m');
+  a.volume = .35;
+  a.play().catch(()=>{});
+}
+
+/* 把一句话按每行不超过 max 字切开 */
+function splitLines(text, max){
+  const out = [];
+  for(let i = 0; i < text.length; i += max){
+    out.push(text.slice(i, i + max));
+  }
+  return out;
+}
+
+/* 主流程 */
+async function go(){
+  if(started) return;
+  started = true;
+  playMusic();
+
+  $('s1').classList.remove('in');
+  await sleep(700);
+  $('s1').style.display = 'none';
+
+  const s2 = $('s2');
+  s2.classList.add('in');
+
+  for(let i = 0; i < SCENES.length; i++){
+    const lines = SCENES[i];
+
+    /* 这段对话的容器 */
+    const box = document.createElement('div');
+    box.className = 'dlg';
+    s2.appendChild(box);
+
+    /* 逐句浮现 */
+    for(const line of lines){
+      const sent = document.createElement('div');
+      sent.className = 'sent';
+
+      const subs = splitLines(line, MAX_PER_LINE);
+      const els = subs.map(sub => {
+        const p = document.createElement('p');
+        p.className = 't';
+        p.textContent = sub;
+        sent.appendChild(p);
+        return p;
+      });
+
+      box.appendChild(sent);
+      await sleep(80);
+      /* 同一句的多行同时浮现 */
+      els.forEach(el => el.classList.add('on'));
+      await sleep(GAP_AFTER_SENT);
+    }
+
+    await sleep(GAP_AFTER_SCENE);
+
+    /* 这段淡出 */
+    box.style.transition = 'opacity .8s ease';
+    box.style.opacity = '0';
+    await sleep(850);
+    box.remove();
+  }
+
+  /* 切到表白 */
+  s2.classList.remove('in');
+  await sleep(800);
+  s2.style.display = 'none';
+  $('s3').classList.add('in');
+}
+
+$('s1').addEventListener('pointerdown', go);
+document.addEventListener('keydown', e => {
+  if(e.key === ' ' || e.key === 'Enter') go();
+});
+
+/* 「再想想」 */
+$('no').addEventListener('click', function(){
+  noCount++;
+  this.textContent = NO_TEXTS[Math.min(noCount, NO_TEXTS.length - 1)];
+  const ns = Math.max(.28, 1 - noCount * .14);
+  this.style.transform = `scale(${ns})`;
+  this.style.opacity = String(Math.max(.2, 1 - noCount * .14));
+  $('yes').style.transform = `scale(${1 + Math.min(noCount * .11, .6)})`;
+  if(noCount >= 6){
+    this.style.opacity = '0';
+    this.style.pointerEvents = 'none';
+  }
+});
+
+/* 「愿意」 */
+$('yes').addEventListener('click', async () => {
+  const q = $('s3');
+  q.classList.remove('in');
+  await sleep(700);
+  q.style.display = 'none';
+
+  const d = new Date();
+  $('ft').innerHTML = FINAL_TEXT;
+  $('fd').textContent =
+    `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 · 我们在一起的第一天`;
+
+  $('s4').classList.add('in');
+});
+</script>
+</body>
+</html>
